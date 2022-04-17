@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<varlist name="ProjectData">
+	<int name="FileVersion">1</int>
+	<varlist name="MapInfo">
+		<varlist name="Terrain">
+			<int name="nx">1024</int>
+			<int name="ny">1024</int>
+			<float name="MinAlt">1</float>
+			<float name="MaxAlt">600</float>
+			<float name="HorizScale">10</float>
+		</varlist>
+		<varlist name="Texture">
+			<int name="nx">134</int>
+			<int name="ny">134</int>
+		</varlist>
+		<bool name="WrapFlag">false</bool>
+	</varlist>
+	<varlist name="Maps">
+		<varlist name="DM">
+			<string name="Filename">1_DM.dmf</string>
+			<string name="MapType">DM</string>
+		</varlist>
+		<varlist name="HF">
+			<string name="Filename">1_HF.hfz</string>
+			<string name="MapType">HF</string>
+		</varlist>
+		<varlist name="AM">
+			<string name="Filename">1_AM.amf.gz</string>
+			<string name="MapType">AM</string>
+		</varlist>
+		<varlist name="TX">
+			<string name="Filename">1_TX.jpg</string>
+			<string name="MapType">RGB</string>
+		</varlist>
+		<varlist name="AM-image">
+			<string name="Filename">\AM-image\_AM-image.mmf</string>
+			<string name="MapType">RGB</string>
+		</varlist>
+	</varlist>
+	<varlist name="Climates">
+		<varlist name="Temperate">
+			<string name="Filename">C:\Users\M1rtex-PC\L3DT\Resources\Std 16.05.3.1\Climates\temperate26\Temperate26.cli.xml</string>
+		</varlist>
+		<varlist name="Arctic">
+			<string name="Filename">C:\Users\M1rtex-PC\L3DT\Resources\Std 16.05.3.1\Climates\arctic26\Arctic26.cli.xml</string>
+		</varlist>
+		<varlist name="Spring Mars (FA)">
+			<string name="Filename">C:\Users\M1rtex-PC\L3DT\Resources\Std 16.05.3.1\Climates\Spring Mars (FA)\Mars.cli.xml</string>
+		</varlist>
+	</varlist>
+</varlist>
