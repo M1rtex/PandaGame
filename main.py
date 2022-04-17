@@ -11,12 +11,15 @@ loadPrcFile("config/conf.prc")
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import GeoMipTerrain
+from Objects import *
 
 
 class MyGame(ShowBase):
     def __init__(self):
         super().__init__(self)
         self.updateTask = taskMgr.add(self.update, "update")
+        self.cTrav = CollisionTraverser()
+        self.pusher = CollisionHandlerPusher()
 
         # Camera
         self.cam.setPos(512, 132, 2050)
@@ -38,19 +41,18 @@ class MyGame(ShowBase):
         # root.writeBamFile('world.bam')
 
         # Actor
-
-        # Actor
-        self.tempActor = Actor("models/panda", {"walk": "models/panda-walk"})
-        self.tempActor.setPos(512, 512, 0)
-        self.tempActor.setScale(8, 8, 8)
-        self.tempActor.loop('walk')
-        self.tempActor.reparentTo(__builtins__.render)
-
-        self.robot = Actor("models/robot", {"left_punch": "models/robot_left_punch", "right_punch": "models/robot_right_punch"})
-        self.robot.setPos(256, 512, 0)
-        self.robot.setScale(10, 10, 10)
-        self.robot.loop('right_punch')
-        self.robot.reparentTo(__builtins__.render)
+        # self.tempActor = Actor("models/panda", {"walk": "models/panda-walk"})
+        # self.tempActor.setPos(512, 512, 0)
+        # self.tempActor.setScale(8, 8, 8)
+        # self.tempActor.loop('walk')
+        # self.tempActor.reparentTo(__builtins__.render)
+        #
+        # self.robot = Actor("models/robot/robot", {"head": "models/robot/robot_head_up",
+        #                                           "right_punch": "models/robot/robot_right_punch"})
+        # self.robot.setPos(256, 512, 0)
+        # self.robot.setScale(10, 10, 10)
+        # self.robot.loop('head')
+        # self.robot.reparentTo(__builtins__.render)
 
         # Actor logics
         self.keyMap = {
@@ -60,7 +62,8 @@ class MyGame(ShowBase):
             "right": False,
             "shoot": False
         }
-        self.tempActor.loop('walk')
+
+        # self.tempActor.loop('walk')
         self.accept("w", self.updateKeyMap, ["up", True])
         self.accept("w-up", self.updateKeyMap, ["up", False])
         self.accept("s", self.updateKeyMap, ["down", True])
@@ -70,14 +73,15 @@ class MyGame(ShowBase):
         self.accept("d", self.updateKeyMap, ["right", True])
         self.accept("d-up", self.updateKeyMap, ["right", False])
 
+        self.player = Player()
+        self.tempEnemy = WalkingEnemy(Vec3(256, 512, 0))
+
         # Collision
-        self.cTrav = CollisionTraverser()
-        self.pusher = CollisionHandlerPusher()
-        colliderNode = CollisionNode("player")
-        colliderNode.addSolid(CollisionSphere(0, 0, 0, 3.6))
-        collider = self.tempActor.attachNewNode(colliderNode)
-        __builtins__.base.pusher.addCollider(collider, self.tempActor)
-        __builtins__.base.cTrav.addCollider(collider, self.pusher)
+        # colliderNode = CollisionNode("player")
+        # colliderNode.addSolid(CollisionSphere(0, 0, 0, 3.6))
+        # collider = self.tempActor.attachNewNode(colliderNode)
+        # __builtins__.base.pusher.addCollider(collider, self.tempActor)
+        # __builtins__.base.cTrav.addCollider(collider, self.pusher)
 
         # Upper
         wallSolid = CollisionTube(0, 930, 0, 930, 930, 0, 5.2)
@@ -103,21 +107,25 @@ class MyGame(ShowBase):
         wallNode.addSolid(wallSolid)
         wall = __builtins__.render.attachNewNode(wallNode)
 
+
+
     def updateKeyMap(self, controlName, controlState):
         self.keyMap[controlName] = controlState
         print(controlName, "set to", controlState)
 
     def update(self, task):
         dt = globalClock.getDt()
-        if self.keyMap["up"]:
-            self.tempActor.setPos(self.tempActor.getPos() + Vec3(0, 120.0 * dt, 0))
-        if self.keyMap["down"]:
-            self.tempActor.setPos(self.tempActor.getPos() + Vec3(0, -120.0 * dt, 0))
-        if self.keyMap["left"]:
-            self.tempActor.setPos(self.tempActor.getPos() + Vec3(-120.0 * dt, 0, 0))
-        if self.keyMap["right"]:
-            self.tempActor.setPos(self.tempActor.getPos() + Vec3(120.0 * dt, 0, 0))
-        return task.cont
+        self.player.update(self.keyMap, dt)
+        self.tempEnemy.update(self.player, dt)
+        # if self.keyMap["up"]:
+        #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(0, 120.0 * dt, 0))
+        # if self.keyMap["down"]:
+        #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(0, -120.0 * dt, 0))
+        # if self.keyMap["left"]:
+        #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(-120.0 * dt, 0, 0))
+        # if self.keyMap["right"]:
+        #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(120.0 * dt, 0, 0))
+        # return task.cont
 
 
 app = MyGame()

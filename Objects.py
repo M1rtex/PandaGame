@@ -7,7 +7,7 @@ FRICTION = 150
 class GameObject():
     def __init__(self, pos, modelName, modelAnims, maxHealth, maxSpeed, colliderName):
         self.actor = Actor(modelName, modelAnims)
-        self.actor.reparentTo(__builtins__.render)
+        self.actor.reparentTo(render)
         self.actor.setPos(pos)
 
         self.maxHealth = maxHealth
@@ -65,8 +65,8 @@ class GameObject():
 
         if self.collider is not None and not self.collider.isEmpty():
             self.collider.clearPythonTag("owner")
-            __builtins__.base.cTrav.removeCollider(self.collider)
-            __builtins__.base.pusher.removeCollider(self.collider)
+            base.cTrav.removeCollider(self.collider)
+            base.pusher.removeCollider(self.collider)
 
         if self.actor is not None:
             self.actor.cleanup()
@@ -79,21 +79,18 @@ class GameObject():
 class Player(GameObject):
     def __init__(self):
         GameObject.__init__(self,
-                            Vec3(0, 0, 0),
-                            "models/panda",
-                              {
-                                  "stand": "models/panda",
-                                  "walk": "models/panda-walk"
-                              },
-                            5,
-                            10,
-                            "player")
+                            pos=Vec3(512, 512, 0),
+                            modelName="models/panda",
+                            modelAnims={"stand": "models/jack", "walk": "models/panda-walk"},
+                            maxHealth=5,
+                            maxSpeed=100,
+                            colliderName="player")
         self.actor.setPos(512, 512, 0)
         self.actor.setScale(8, 8, 8)
-        __builtins__.base.pusher.addCollider(self.collider, self.actor)
-        __builtins__.base.cTrav.addCollider(self.collider, __builtins__.base.pusher)
+        base.pusher.addCollider(self.collider, self.actor)
+        base.cTrav.addCollider(self.collider, base.pusher)
 
-        self.actor.loop("stand")
+        self.actor.loop("walk")
 
     def update(self, keys, dt):
         GameObject.update(self, dt)
@@ -113,19 +110,19 @@ class Player(GameObject):
             self.walking = True
             self.velocity.addX(self.acceleration*dt)
 
-        if self.walking:
-            standControl = self.actor.getAnimControl("stand")
-            if standControl.isPlaying():
-                standControl.stop()
-
-            walkControl = self.actor.getAnimControl("walk")
-            if not walkControl.isPlaying():
-                self.actor.loop("walk")
-        else:
-            standControl = self.actor.getAnimControl("stand")
-            if not standControl.isPlaying():
-                self.actor.stop("walk")
-                self.actor.loop("stand")
+        # if self.walking:
+        #     standControl = self.actor.getAnimControl("stand")
+        #     if standControl.isPlaying():
+        #         standControl.stop()
+        #
+        #     walkControl = self.actor.getAnimControl("walk")
+        #     if not walkControl.isPlaying():
+        #         self.actor.loop("walk")
+        # else:
+        #     standControl = self.actor.getAnimControl("stand")
+        #     if not standControl.isPlaying():
+        #         self.actor.stop("walk")
+        #         self.actor.loop("stand")
 
 
 class Enemy(GameObject):
@@ -160,13 +157,13 @@ class Enemy(GameObject):
 class WalkingEnemy(Enemy):
     def __init__(self, pos):
         Enemy.__init__(self, pos,
-                       "models/robot",
+                       "models/robot/robot",
                        {
-                        "stand": "models/robot",
-                        "walk": "models/robot",
-                        "attack": "models/robot_right_punch",
-                        "die": "Models/Misc/simpleEnemy-die",
-                        "spawn": "models/robot"
+                        "stand": "models/robot/robot",
+                        "walk": "models/robot/robot_head_down",
+                        "attack": "models/robot/robot_right_punch",
+                        "die": "models/robot/robot_head_up",
+                        "spawn": "models/robot/robot"
                         },
                        3.0,
                        7.0,
