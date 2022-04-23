@@ -1,10 +1,13 @@
+# Models folder ./venv/Lib/side-packages/panda3d/models
+
+
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import loadPrcFile
 from panda3d.core import Vec4, Vec3
 from panda3d.core import CollisionTraverser
 from panda3d.core import CollisionHandlerPusher
-from panda3d.core import CollisionSphere, CollisionNode
+from panda3d.core import CollisionSphere, CollisionNode, CollisionRay, CollisionHandlerQueue
 from panda3d.core import CollisionTube
 
 loadPrcFile("config/conf.prc")
@@ -17,7 +20,9 @@ from Objects import *
 class MyGame(ShowBase):
     def __init__(self):
         super().__init__(self)
-        self.updateTask = taskMgr.add(self.update, "update")
+
+        self.disable_mouse()
+
         self.cTrav = CollisionTraverser()
         self.pusher = CollisionHandlerPusher()
 
@@ -72,6 +77,8 @@ class MyGame(ShowBase):
         self.accept("a-up", self.updateKeyMap, ["left", False])
         self.accept("d", self.updateKeyMap, ["right", True])
         self.accept("d-up", self.updateKeyMap, ["right", False])
+        self.accept("space", self.updateKeyMap, ["shoot", True])
+        self.accept("space-up", self.updateKeyMap, ["shoot", False])
 
         self.player = Player()
         self.tempEnemy = WalkingEnemy(Vec3(256, 512, 0))
@@ -108,14 +115,19 @@ class MyGame(ShowBase):
         wall = __builtins__.render.attachNewNode(wallNode)
 
 
+        self.updateTask = taskMgr.add(self.update, "update")
+
+
+
 
     def updateKeyMap(self, controlName, controlState):
         self.keyMap[controlName] = controlState
-        print(controlName, "set to", controlState)
+        if controlState == True:
+            print(controlName, "set to", controlState)
 
     def update(self, task):
         dt = globalClock.getDt()
-        self.player.update(self.keyMap, dt)
+        self.player.update(self.keyMap, dt, self.tempEnemy)
         self.tempEnemy.update(self.player, dt)
         # if self.keyMap["up"]:
         #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(0, 120.0 * dt, 0))
@@ -125,7 +137,7 @@ class MyGame(ShowBase):
         #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(-120.0 * dt, 0, 0))
         # if self.keyMap["right"]:
         #     self.tempActor.setPos(self.tempActor.getPos() + Vec3(120.0 * dt, 0, 0))
-        # return task.cont
+        return task.cont
 
 
 app = MyGame()
