@@ -83,7 +83,7 @@ class Game(ShowBase):
         self.titleMenu = DirectFrame(frameColor=(1, 1, 1, 0))
 
         # Our title! "Panda-chan and the Endless Horde"
-        title = DirectLabel(text="Panda-chan",
+        title = DirectLabel(text="Panda-laser-eye",
                             scale=0.1,
                             pos=(0, 0, 0.9),
                             parent=self.titleMenu,
@@ -96,7 +96,7 @@ class Game(ShowBase):
                              parent=self.titleMenu,
                              text_font=self.font,
                              frameColor=(0.5, 0.5, 0.5, 1))
-        title3 = DirectLabel(text="Endless Horde",
+        title3 = DirectLabel(text="Damn Car",
                              scale=0.125,
                              pos=(0, 0, 0.65),
                              parent=self.titleMenu,
@@ -128,14 +128,9 @@ class Game(ShowBase):
                            text_pos=(0, -0.2))
         btn.setTransparency(True)
 
-        self.scoreUI = OnscreenText(text="0",
-                                    pos=(-1.3, 0.825),
-                                    mayChange=True,
-                                    align=TextNode.ALeft,
-                                    font=base.font)
-
         properties = WindowProperties()
-        properties.setSize(1000, 750)
+        properties.setSize(1000, 650)
+        base.setFrameRateMeter(True)
         self.win.requestProperties(properties)
 
         self.exitFunc = self.cleanup
@@ -183,8 +178,6 @@ class Game(ShowBase):
         self.pusher.setHorizontal(True)
 
         self.pusher.add_in_pattern("%fn-into-%in")
-        self.accept("trapEnemy-into-wall", self.stopTrap)
-        self.accept("trapEnemy-into-trapEnemy", self.stopTrap)
         self.accept("trapEnemy-into-player", self.trapHitsSomething)
         self.accept("trapEnemy-into-walkingEnemy", self.trapHitsSomething)
 
@@ -238,6 +231,8 @@ class Game(ShowBase):
 
         self.difficultyInterval = 5.0
         self.difficultyTimer = self.difficultyInterval
+
+        render.analyze()
 
 
     def startGame(self):
@@ -297,13 +292,6 @@ class Game(ShowBase):
             spawnPoint = random.choice(self.spawnPoints)
             newEnemy = WalkingEnemy(spawnPoint)
             self.enemies.append(newEnemy)
-
-    def stopTrap(self, entry):
-        collider = entry.getFromNodePath()
-        if collider.hasPythonTag("owner"):
-            trap = collider.getPythonTag("owner")
-            trap.moveDirection = 0
-            trap.ignorePlayer = False
 
     def trapHitsSomething(self, entry):
         collider = entry.getFromNodePath()

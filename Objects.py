@@ -84,7 +84,7 @@ class Player(GameObject):
                             "player")
         self.actor.getChild(0).setH(180)
 
-        self.actor.setScale(10,10,10)
+        self.actor.setScale(10, 10, 10)
 
         mask = BitMask32()
         mask.setBit(1)
@@ -93,6 +93,9 @@ class Player(GameObject):
 
         mask = BitMask32()
         mask.setBit(1)
+
+        self.lastMousePos = Vec2(0, 0)
+        self.groundPlane = Plane(Vec3(0, 0, 1), Vec3(0, 0, 0))
 
         self.collider.node().setFromCollideMask(mask)
 
@@ -122,13 +125,14 @@ class Player(GameObject):
         base.cTrav.addCollider(self.rayNodePath, self.rayQueue)
 
         self.beamModel = loader.loadModel("models/player/bambooLaser")
-        self.beamModel.setScale(8,8,8)
+        self.beamModel.setScale(8, 8, 8)
         self.beamModel.reparentTo(self.actor)
-        self.beamModel.setZ(1.5)
+        self.beamModel.setZ(5.5)
         self.beamModel.setLightOff()
         self.beamModel.hide()
 
         self.beamHitModel = loader.loadModel("models/player/bambooLaserHit")
+        self.beamHitModel.setScale(8, 8, 8)
         self.beamHitModel.reparentTo(render)
         self.beamHitModel.setZ(1.5)
         self.beamHitModel.setLightOff()
@@ -174,6 +178,19 @@ class Player(GameObject):
 
     def update(self, keys, dt):
 
+        mouseWatcher = base.mouseWatcherNode
+        if mouseWatcher.hasMouse():
+            mousePos = mouseWatcher.getMouse()
+        else:
+            mousePos = self.lastMousePos
+        mousePos3D = Point3()
+        nearPoint = Point3()
+        farPoint = Point3()
+        base.camLens.extrude(mousePos, nearPoint, farPoint)
+        self.groundPlane.intersectsLine(mousePos3D,
+                                        render.getRelativePoint(base.cam, nearPoint),
+                                        render.getRelativePoint(base.cam, farPoint))
+
         # self.headLogic(enemy, dt)
 
         GameObject.update(self, dt)
@@ -210,22 +227,16 @@ class Player(GameObject):
         else:
             mousePos = self.lastMousePos
 
-        mousePos3D = Point3()
-        nearPoint = Point3()
-        farPoint = Point3()
-
-        self.groundPlane.intersectsLine(mousePos3D,
-                                        render.getRelativePoint(base.camera, nearPoint),
-                                        render.getRelativePoint(base.camera, farPoint))
-
         firingVector = Vec3(mousePos3D - self.actor.getPos())
         firingVector2D = firingVector.getXy()
         firingVector2D.normalize()
         firingVector.normalize()
-
         heading = self.yVector.signedAngleDeg(firingVector2D)
-
         self.actor.setH(heading)
+        if firingVector.length() > 0.001:
+            self.ray.setOrigin(self.actor.getPos())
+            self.ray.setDirection(firingVector)
+        self.lastMousePos = mousePos
 
         self.beamHitTimer -= dt
         if self.beamHitTimer <= 0:
@@ -272,12 +283,6 @@ class Player(GameObject):
 
             self.beamModel.hide()
             self.beamHitModel.hide()
-
-        if firingVector.length() > 0.001:
-            self.ray.setOrigin(self.actor.getPos())
-            self.ray.setDirection(firingVector)
-
-        self.lastMousePos = mousePos
 
         if self.damageTakenModelTimer > 0:
             self.damageTakenModelTimer -= dt
