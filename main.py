@@ -1,12 +1,15 @@
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.ShowBase import ShowBase, NodePath, LODNode
 from direct.actor.Actor import Actor
 from panda3d.core import CollisionTraverser, CollisionHandlerPusher, CollisionSphere, CollisionTube, CollisionNode
 from panda3d.core import AmbientLight, DirectionalLight
 from panda3d.core import Vec4, Vec3
 from panda3d.core import WindowProperties
+from panda3d.core import GeoMipTerrain
 from direct.gui.DirectGui import *
 from Objects import *
 import random
+from panda3d.core import loadPrcFile
+loadPrcFile("config/conf.prc")
 
 
 class Game(ShowBase):
@@ -128,10 +131,10 @@ class Game(ShowBase):
                            text_pos=(0, -0.2))
         btn.setTransparency(True)
 
-        properties = WindowProperties()
-        properties.setSize(1000, 650)
-        base.setFrameRateMeter(True)
-        self.win.requestProperties(properties)
+        # properties = WindowProperties()
+        # properties.setSize(1000, 650)
+        # base.setFrameRateMeter(True)
+        # self.win.requestProperties(properties)
 
         self.exitFunc = self.cleanup
 
@@ -144,10 +147,20 @@ class Game(ShowBase):
         ambientLight.setColor(Vec4(0.2, 0.2, 0.2, 1))
         self.ambientLightNodePath = render.attachNewNode(ambientLight)
         render.setLight(self.ambientLightNodePath)
-
         render.setShaderAuto()
 
+
+        # self.world = GeoMipTerrain("worldTerrain")
+        # self.world.setHeightfield("HifieldLow.png")
+        # self.world.setColorMap("Textures.png")
+        # self.world.setBruteforce(True)
+        # self.world.generate()
+        # self.world.getRoot().reparentTo(render)
+
+
         self.world = self.loader.loadModel("world.bam")
+        self.newWorld = NodePath('model')
+        # self.world.getChildren().reparentTo(self.newWorld)
         self.world.reparentTo(self.render)
 
         self.cam.setPos(512, 132, 2050)
@@ -264,25 +277,6 @@ class Game(ShowBase):
                 sideTrapSlots[2].append(slotPos)
                 sideTrapSlots[3].append(slotPos)
             slotPos += trapSlotDistance
-
-        # for i in range(self.numTrapsPerSide):
-        #     slot = sideTrapSlots[0].pop(random.randint(0, len(sideTrapSlots[0]) - 1))
-        #     trap = TrapEnemy(Vec3(slot, 7.0, 0))
-        #     self.trapEnemies.append(trap)
-        #
-        #     slot = sideTrapSlots[1].pop(random.randint(0, len(sideTrapSlots[1]) - 1))
-        #     trap = TrapEnemy(Vec3(slot, -7.0, 0))
-        #     self.trapEnemies.append(trap)
-        #
-        #     slot = sideTrapSlots[2].pop(random.randint(0, len(sideTrapSlots[2]) - 1))
-        #     trap = TrapEnemy(Vec3(7.0, slot, 0))
-        #     trap.moveInX = True
-        #     self.trapEnemies.append(trap)
-        #
-        #     slot = sideTrapSlots[3].pop(random.randint(0, len(sideTrapSlots[3]) - 1))
-        #     trap = TrapEnemy(Vec3(-7.0, slot, 0))
-        #     trap.moveInX = True
-        #     self.trapEnemies.append(trap)
 
     def updateKeyMap(self, controlName, controlState):
         self.keyMap[controlName] = controlState

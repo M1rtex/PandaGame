@@ -6,7 +6,7 @@
 			<int name="nx">1024</int>
 			<int name="ny">1024</int>
 			<float name="MinAlt">1</float>
-			<float name="MaxAlt">600</float>
+			<float name="MaxAlt">599.99</float>
 			<float name="HorizScale">10</float>
 		</varlist>
 		<varlist name="Texture">
