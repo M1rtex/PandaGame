@@ -82,10 +82,7 @@ class Game(ShowBase):
                                              frameSize=(-1, 1, -1, 1),
                                              parent=render2d)
 
-        # The menu itself
         self.titleMenu = DirectFrame(frameColor=(1, 1, 1, 0))
-
-        # Our title! "Panda-chan and the Endless Horde"
         title = DirectLabel(text="Panda-laser-eye",
                             scale=0.1,
                             pos=(0, 0, 0.9),
@@ -131,37 +128,25 @@ class Game(ShowBase):
                            text_pos=(0, -0.2))
         btn.setTransparency(True)
 
-        # properties = WindowProperties()
-        # properties.setSize(1000, 650)
-        # base.setFrameRateMeter(True)
-        # self.win.requestProperties(properties)
-
         self.exitFunc = self.cleanup
 
+        # MAP
+        self.world = self.loader.loadModel("textures/game_map.egg")
+        self.world.setScale(10)
+        self.world.setPos(Vec3(512, 512, 0))
+        self.world.reparentTo(self.render)
+
+        # Light
         mainLight = DirectionalLight("main light")
         self.mainLightNodePath = render.attachNewNode(mainLight)
         self.mainLightNodePath.setHpr(45, -45, 0)
         render.setLight(self.mainLightNodePath)
 
         ambientLight = AmbientLight("ambient light")
-        ambientLight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-        self.ambientLightNodePath = render.attachNewNode(ambientLight)
+        ambientLight.setColor(Vec4(0.37, 0.37, 0.37, 1))
+        self.ambientLightNodePath = self.world.attachNewNode(ambientLight)
         render.setLight(self.ambientLightNodePath)
-        render.setShaderAuto()
-
-
-        # self.world = GeoMipTerrain("worldTerrain")
-        # self.world.setHeightfield("HifieldLow.png")
-        # self.world.setColorMap("Textures.png")
-        # self.world.setBruteforce(True)
-        # self.world.generate()
-        # self.world.getRoot().reparentTo(render)
-
-
-        self.world = self.loader.loadModel("world.bam")
-        self.newWorld = NodePath('model')
-        # self.world.getChildren().reparentTo(self.newWorld)
-        self.world.reparentTo(self.render)
+        # render.setShaderAuto()
 
         self.cam.setPos(512, 132, 2050)
         self.cam.setP(-80)
@@ -194,25 +179,29 @@ class Game(ShowBase):
         self.accept("trapEnemy-into-player", self.trapHitsSomething)
         self.accept("trapEnemy-into-walkingEnemy", self.trapHitsSomething)
 
-        wallSolid = CollisionTube(0, 930, 0, 930, 930, 0, 8.2)
+        # UpperWall
+        wallSolid = CollisionTube(0, 870, 0, 930, 870, 0, 8.2)
         wallNode = CollisionNode("wall")
         wallNode.addSolid(wallSolid)
         wall = render.attachNewNode(wallNode)
         wall.setY(8.0)
 
-        wallSolid = CollisionTube(0, 94, 0, 930, 94, 0, 8.2)
+        # BottomWall
+        wallSolid = CollisionTube(0, 114, 0, 930, 114, 0, 8.2)
         wallNode = CollisionNode("wall")
         wallNode.addSolid(wallSolid)
         wall = render.attachNewNode(wallNode)
         wall.setY(-8.0)
 
-        wallSolid = CollisionTube(94, 0, 0, 94, 930, 0, 8.2)
+        # LeftWall
+        wallSolid = CollisionTube(129, 0, 0, 129, 930, 0, 8.2)
         wallNode = CollisionNode("wall")
         wallNode.addSolid(wallSolid)
         wall = render.attachNewNode(wallNode)
         wall.setX(8.0)
 
-        wallSolid = CollisionTube(930, 0, 0, 930, 930, 0, 8.2)
+        # RightWall
+        wallSolid = CollisionTube(900, 0, 0, 900, 930, 0, 8.2)
         wallNode = CollisionNode("wall")
         wallNode.addSolid(wallSolid)
         wall = render.attachNewNode(wallNode)
@@ -250,6 +239,7 @@ class Game(ShowBase):
 
     def startGame(self):
         self.cleanup()
+        self.enemyMaxSpeed = 200.0
 
         self.titleMenu.hide()
         self.titleMenuBackdrop.hide()
@@ -284,7 +274,7 @@ class Game(ShowBase):
     def spawnEnemy(self):
         if len(self.enemies) < self.maxEnemies:
             spawnPoint = random.choice(self.spawnPoints)
-            newEnemy = WalkingEnemy(spawnPoint)
+            newEnemy = WalkingEnemy(spawnPoint, self.enemyMaxSpeed)
             self.enemies.append(newEnemy)
 
     def trapHitsSomething(self, entry):
@@ -309,9 +299,7 @@ class Game(ShowBase):
 
         if self.player is not None:
             if self.player.health > 0:
-                self.player.update(self.keyMap, dt, )
-                # if len(self.enemies) > 1:
-                #     self.player.headLogic(self.enemies[1], dt)
+                self.player.update(self.keyMap, dt)
 
                 self.spawnTimer -= dt
                 if self.spawnTimer <= 0:
@@ -324,9 +312,14 @@ class Game(ShowBase):
                 self.enemies = [enemy for enemy in self.enemies if enemy.health > 0]
 
                 for enemy in newlyDeadEnemies:
+                    if self.player.score % 20 == 0:
+                        self.enemyMaxSpeed += 10
+                        print(self.enemyMaxSpeed)
                     enemy.collider.removeNode()
                     enemy.actor.play("die")
                     self.player.score += enemy.scoreValue
+                    if self.player.score % 10 == 0:
+                        self.player.damagePerSecond -= 1.25
                 if len(newlyDeadEnemies) > 0:
                     self.player.updateScore()
 

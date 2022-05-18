@@ -8,7 +8,7 @@ from panda3d.core import PointLight
 import random
 import math
 
-FRICTION = 150.0
+FRICTION = 350.0
 
 
 class GameObject():
@@ -47,7 +47,6 @@ class GameObject():
                 frictionVec = -self.velocity
                 frictionVec.normalize()
                 frictionVec *= frictionVal
-
                 self.velocity += frictionVec
 
         self.actor.setPos(self.actor.getPos() + self.velocity*dt)
@@ -124,14 +123,14 @@ class Player(GameObject):
 
         base.cTrav.addCollider(self.rayNodePath, self.rayQueue)
 
-        self.beamModel = loader.loadModel("models/player/bambooLaser")
+        self.beamModel = loader.loadModel("textures/BambooLaser/bambooLaser.egg")
         self.beamModel.setScale(8, 8, 8)
         self.beamModel.reparentTo(self.actor)
         self.beamModel.setZ(5.5)
         self.beamModel.setLightOff()
         self.beamModel.hide()
 
-        self.beamHitModel = loader.loadModel("models/player/bambooLaserHit")
+        self.beamHitModel = loader.loadModel("textures/BambooLaser/bambooLaserHit")
         self.beamHitModel.setScale(8, 8, 8)
         self.beamHitModel.reparentTo(render)
         self.beamHitModel.setZ(1.5)
@@ -145,20 +144,25 @@ class Player(GameObject):
 
         self.score = 0
 
-        self.scoreUI = OnscreenText(text = "0",
-                                    pos = (-1.3, 0.825),
-                                    mayChange = True,
-                                    align = TextNode.ALeft)
+        self.scoreUI = OnscreenText(text="Your score: 0",
+                                    pos=(-1.5, 0.825),
+                                    mayChange=True,
+                                    align=TextNode.ALeft)
+
+        self.damageUI = OnscreenText(text="Your damage: 0",
+                                    pos=(-1.5, 0.725),
+                                    mayChange=True,
+                                    align=TextNode.ALeft)
 
         self.healthIcons = []
         for i in range(self.maxHealth):
-            icon = OnscreenImage(image = "UI/health.png",
-                                 pos = (-1.275 + i*0.075, 0, 0.95),
-                                 scale = 0.04)
+            icon = OnscreenImage(image="UI/health.png",
+                                 pos=(-1.275 + i*0.075, 0, 0.95),
+                                 scale=0.04)
             icon.setTransparency(True)
             self.healthIcons.append(icon)
 
-        self.damageTakenModel = loader.loadModel("models/player/playerHit")
+        self.damageTakenModel = loader.loadModel("textures/BambooLaser/playerHit")
         self.damageTakenModel.setLightOff()
         self.damageTakenModel.setZ(1.0)
         self.damageTakenModel.reparentTo(self.actor)
@@ -269,18 +273,9 @@ class Player(GameObject):
 
                     self.beamHitModel.setPos(hitPos)
                     self.beamHitLightNodePath.setPos(hitPos + Vec3(0, 0, 0.5))
-
-                    if not render.hasLight(self.beamHitLightNodePath):
-                        render.setLight(self.beamHitLightNodePath)
                 else:
-                    if render.hasLight(self.beamHitLightNodePath):
-                        render.clearLight(self.beamHitLightNodePath)
-
                     self.beamHitModel.hide()
         else:
-            if render.hasLight(self.beamHitLightNodePath):
-                render.clearLight(self.beamHitLightNodePath)
-
             self.beamModel.hide()
             self.beamHitModel.hide()
 
@@ -290,16 +285,9 @@ class Player(GameObject):
             if self.damageTakenModelTimer <= 0:
                 self.damageTakenModel.hide()
 
-    def headLogic(self, enemy, dt):
-        vectorToEnemy = enemy.actor.getPos() - self.actor.getPos()
-        vectorToEnemy2D = vectorToEnemy.getXy()
-        distanceToEnemy = vectorToEnemy2D.length()
-        vectorToEnemy2D.normalize()
-        heading = self.yVector.signedAngleDeg(vectorToEnemy2D)
-        self.actor.setH(heading)
-
     def updateScore(self):
-        self.scoreUI.setText(str(self.score))
+        self.scoreUI.setText(f"Your score: {str(self.score)}")
+        self.damageUI.setText(f"Your damage: {str(self.damagePerSecond)}")
 
     def alterHealth(self, dHealth):
         GameObject.alterHealth(self, dHealth)
@@ -360,18 +348,18 @@ class Enemy(GameObject):
         pass
 
 class WalkingEnemy(Enemy):
-    def __init__(self, pos):
+    def __init__(self, pos, maxSpeed):
         Enemy.__init__(self, pos,
-                       "models/robot/simpleEnemy",
+                       "textures/SimpleEnemy/simpleEnemy.egg",
                        {
-                        "stand" : "models/robot/simpleEnemy-stand",
-                        "walk" : "models/robot/simpleEnemy-walk",
-                        "attack" : "models/robot/simpleEnemy-attack",
-                        "die" : "models/robot/simpleEnemy-die",
-                        "spawn" : "models/robot/simpleEnemy-spawn"
+                        "stand" : "textures/SimpleEnemy/simpleEnemy-stand",
+                        "walk" : "textures/SimpleEnemy/simpleEnemy-walk",
+                        "attack" : "textures/SimpleEnemy/simpleEnemy-attack",
+                        "die" : "textures/SimpleEnemy/simpleEnemy-die",
+                        "spawn" : "textures/SimpleEnemy/simpleEnemy-spawn"
                         },
                        3.0,
-                       200.0,
+                       maxSpeed,
                        "walkingEnemy")
 
         self.actor.setScale(100,100,100)
@@ -484,10 +472,10 @@ class WalkingEnemy(Enemy):
 class TrapEnemy(Enemy):
     def __init__(self, pos):
         Enemy.__init__(self, pos,
-                       "Models/Misc/trap",
+                       "textures/SlidingTrap/trap.egg",
                        {
-                        "stand" : "Models/Misc/trap-stand",
-                        "walk" : "Models/Misc/trap-walk",
+                        "stand" : "textures/SlidingTrap/trap-stand",
+                        "walk" : "textures/SlidingTrap/trap-walk",
                         },
                        100.0,
                        10.0,
