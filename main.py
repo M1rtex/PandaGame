@@ -5,6 +5,7 @@ from panda3d.core import AmbientLight, DirectionalLight
 from panda3d.core import Vec4, Vec3
 from panda3d.core import WindowProperties
 from panda3d.core import GeoMipTerrain
+from panda3d.core import AudioSound
 from direct.gui.DirectGui import *
 from Objects import *
 import random
@@ -140,6 +141,8 @@ class Game(ShowBase):
         mainLight = DirectionalLight("main light")
         self.mainLightNodePath = render.attachNewNode(mainLight)
         self.mainLightNodePath.setHpr(45, -45, 0)
+        # self.mainLightNodePath.setPos(Vec3(512, 512, 0))
+        # self.mainLightNodePath.lookAt(self.world)
         render.setLight(self.mainLightNodePath)
 
         ambientLight = AmbientLight("ambient light")
@@ -147,6 +150,12 @@ class Game(ShowBase):
         self.ambientLightNodePath = self.world.attachNewNode(ambientLight)
         render.setLight(self.ambientLightNodePath)
         # render.setShaderAuto()
+
+        # Menu music
+        self.menu_music = self.loader.loadMusic("sounds/menu_music.mp3")
+        self.menu_music.setLoop(True)
+        self.menu_music.setVolume(0.065)
+        self.menu_music.play()
 
         self.cam.setPos(512, 132, 2050)
         self.cam.setP(-80)
@@ -240,6 +249,20 @@ class Game(ShowBase):
     def startGame(self):
         self.cleanup()
         self.enemyMaxSpeed = 200.0
+        self.enemyMaxHealth = 3.0
+
+        # In game music
+        if self.menu_music.status() == AudioSound.PLAYING:
+            self.menu_music.stop()
+        try:
+            if self.in_game_music.status() == AudioSound.PLAYING:
+                self.in_game_music.stop()
+        except:
+            pass
+        self.in_game_music = self.loader.loadMusic("sounds/music.mp3")
+        self.in_game_music.setLoop(True)
+        self.in_game_music.setVolume(0.035)
+        self.in_game_music.play()
 
         self.titleMenu.hide()
         self.titleMenuBackdrop.hide()
@@ -274,7 +297,7 @@ class Game(ShowBase):
     def spawnEnemy(self):
         if len(self.enemies) < self.maxEnemies:
             spawnPoint = random.choice(self.spawnPoints)
-            newEnemy = WalkingEnemy(spawnPoint, self.enemyMaxSpeed)
+            newEnemy = WalkingEnemy(spawnPoint, self.enemyMaxSpeed, self.enemyMaxHealth)
             self.enemies.append(newEnemy)
 
     def trapHitsSomething(self, entry):
@@ -314,11 +337,17 @@ class Game(ShowBase):
                 for enemy in newlyDeadEnemies:
                     if self.player.score % 20 == 0:
                         self.enemyMaxSpeed += 10
-                        print(self.enemyMaxSpeed)
+                        self.enemyMaxHealth += 0.25
                     enemy.collider.removeNode()
                     enemy.actor.play("die")
+                    kill_sound = self.loader.load_sfx("sounds/kill.wav")
+                    kill_sound.setVolume(0.090)
+                    kill_sound.play()
                     self.player.score += enemy.scoreValue
-                    if self.player.score % 10 == 0:
+                    if self.player.score % 10 == 0 and self.player.damagePerSecond > -60:
+                        self.damage_up_sound = self.loader.load_sfx('sounds/damage_up.wav')
+                        self.damage_up_sound.setVolume(0.090)
+                        self.damage_up_sound.play()
                         self.player.damagePerSecond -= 1.25
                 if len(newlyDeadEnemies) > 0:
                     self.player.updateScore()
@@ -344,6 +373,15 @@ class Game(ShowBase):
             else:
                 if self.gameOverScreen.isHidden():
                     self.gameOverScreen.show()
+                    try:
+                        if self.in_game_music.status() == AudioSound.PLAYING:
+                            self.in_game_music.stop()
+                        self.menu_music.play()
+                    except:
+                        pass
+                    defeat_sound = self.loader.load_sfx("sounds/defeat.wav")
+                    defeat_sound.setVolume(0.101)
+                    defeat_sound.play()
                     self.finalScoreLabel["text"] = "Final score: " + str(self.player.score)
                     self.finalScoreLabel.setText()
 

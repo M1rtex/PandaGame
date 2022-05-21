@@ -287,7 +287,7 @@ class Player(GameObject):
 
     def updateScore(self):
         self.scoreUI.setText(f"Your score: {str(self.score)}")
-        self.damageUI.setText(f"Your damage: {str(self.damagePerSecond)}")
+        self.damageUI.setText(f"Your damage: {str(self.damagePerSecond * -1)}")
 
     def alterHealth(self, dHealth):
         GameObject.alterHealth(self, dHealth)
@@ -348,7 +348,7 @@ class Enemy(GameObject):
         pass
 
 class WalkingEnemy(Enemy):
-    def __init__(self, pos, maxSpeed):
+    def __init__(self, pos, maxSpeed, maxHealth):
         Enemy.__init__(self, pos,
                        "textures/SimpleEnemy/simpleEnemy.egg",
                        {
@@ -358,7 +358,7 @@ class WalkingEnemy(Enemy):
                         "die" : "textures/SimpleEnemy/simpleEnemy-die",
                         "spawn" : "textures/SimpleEnemy/simpleEnemy-spawn"
                         },
-                       3.0,
+                       maxHealth,
                        maxSpeed,
                        "walkingEnemy")
 
@@ -393,8 +393,6 @@ class WalkingEnemy(Enemy):
         self.segmentQueue = CollisionHandlerQueue()
 
         base.cTrav.addCollider(self.attackSegmentNodePath, self.segmentQueue)
-        # base.pusher.addCollider(self.collider, self.actor)
-        # base.cTrav.addCollider(self.collider, base.pusher)
 
         self.attackDamage = -1
 
