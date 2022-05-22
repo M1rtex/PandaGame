@@ -402,7 +402,6 @@ class Game(ShowBase):
 
     def quit(self):
         self.cleanup()
-
         base.userExit()
 
 
